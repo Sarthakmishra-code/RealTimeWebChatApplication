@@ -49,8 +49,16 @@ const login = async (req, res) => {
 
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find({ _id: { $ne: req.user._id } }).select("-password");
-    res.json(users);
+    const users = await User.find({ _id: { $ne: req.user._id } })
+      .select("-password")
+      .lean();
+
+    const serialized = users.map((u) => ({
+      ...u,
+      _id: u._id.toString(),
+    }));
+
+    res.json(serialized);
   } catch (error) {
     res.status(500).json({ message: "Server error fetching users" });
   }

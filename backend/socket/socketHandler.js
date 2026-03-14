@@ -15,12 +15,22 @@ const setupSocket = (io) => {
       try {
         const message = await Message.create({ senderId, receiverId, text });
 
+        // Serialize to plain object so ObjectIds become strings
+        const payload = {
+          _id: message._id.toString(),
+          senderId: message.senderId.toString(),
+          receiverId: message.receiverId.toString(),
+          text: message.text,
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt,
+        };
+
         const receiverSocketId = userSocketMap[receiverId];
         if (receiverSocketId) {
-          io.to(receiverSocketId).emit("newMessage", message);
+          io.to(receiverSocketId).emit("newMessage", payload);
         }
 
-        socket.emit("newMessage", message);
+        socket.emit("newMessage", payload);
       } catch (error) {
         socket.emit("error", { message: "Failed to send message" });
       }
